@@ -15,6 +15,42 @@ WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
 WINDOW_TITLE = "Starting Template"
 
+class StartScreen(arcade.View):
+    def on_show_view(self):
+    
+        self.window.background_color = arcade.csscolor.DARK_SLATE_BLUE
+
+        # Reset the viewport, necessary if we have a scrolling game and we need
+        # to reset the viewport back to the start so we can see what we draw.
+        # self.window.default_camera.use()
+    def on_draw(self):
+        """ Draw this view """
+        self.clear()
+        arcade.draw_text("Pong", self.window.width / 2, self.window.height / 2,
+                         arcade.color.WHITE, font_size=50, anchor_x="center")
+        arcade.draw_text("Press 1 for 1 ball", self.window.width / 2, self.window.height / 2-75,
+                         arcade.color.WHITE, font_size=20, anchor_x="center")
+        arcade.draw_text("Press 2 for 2 balls", self.window.width / 2, self.window.height / 2-100,
+                         arcade.color.WHITE, font_size=20, anchor_x="center")
+        
+    def on_key_press(self, key, key_modifiers):
+        """
+        Called whenever a key on the keyboard is pressed.
+
+        For a full list of keys, see:
+        https://api.arcade.academy/en/latest/arcade.key.html
+        """
+        if key == arcade.key.KEY_1:
+            balls = 1
+            game_view = GameView()
+            game_view.setup(balls)
+            self.window.show_view(game_view)
+        elif key == arcade.key.KEY_2:
+            balls = 2
+            game_view = GameView()
+            game_view.setup(balls)
+            self.window.show_view(game_view)
+
 
 class GameView(arcade.View):
     """
@@ -33,20 +69,32 @@ class GameView(arcade.View):
         # If you have sprite lists, you should create them here,
         # and set them to None
 
-        self.ball = ball.Ball(WINDOW_HEIGHT, WINDOW_WIDTH)
-        self.ball.center_x = 200
-        self.ball.center_y = 300
-        self.ball.change_x = 5
-        self.ball.change_y = 7
         self.scoreL = 0
         self.scoreR = 0
+        self.direction = 0
         self.scoreL_text = None
         self.scoreR_text = None
+        self.balls = []
 
         self.paddleR = paddles.Paddle()
         self.paddleL = paddles.Paddle()
 
-    def setup(self):
+    def createBall(self, y):
+        z = 0
+        if y % 2:
+            z = -1
+        else:
+            z = 1
+
+        newBall = ball.Ball(WINDOW_HEIGHT, WINDOW_WIDTH)
+        newBall.center_x = self.width // 2
+        newBall.center_y = self.height // 2
+        newBall.change_x = 5*z
+        newBall.change_y = 7*z
+        
+        return newBall
+
+    def setup(self, ballCount):
         self.scoreL = 0
         self.scoreR = 0
         self.scoreL_text = arcade.Text(f"Score: {self.scoreL}", x = 20, y = WINDOW_HEIGHT-15)
@@ -57,6 +105,11 @@ class GameView(arcade.View):
 
         self.paddleR.center_x = WINDOW_WIDTH - 50
         self.paddleR.center_y = WINDOW_HEIGHT / 2
+
+        y = 0
+        for x in range(ballCount):
+            self.balls.append(self.createBall(y))
+            y += 1
 
 
     def reset(self):
@@ -78,7 +131,8 @@ class GameView(arcade.View):
         self.scoreR_text.draw()
         self.paddleL.draw()
         self.paddleR.draw()
-        self.ball.draw()
+        for ball in self.balls:
+            ball.draw()
 
     def on_update(self, delta_time):
         """
@@ -86,21 +140,46 @@ class GameView(arcade.View):
         Normally, you'll call update() on the sprite lists that
         need it.
         """
-        if self.ball.center_x < 25:
-            self.scoreR += 1
-            self.scoreR_text.text = f"Score: {self.scoreR}"
+        ballScore = None
+        
+        for ball in self.balls:
+            if ball.center_x < 25:
+                self.scoreR += 1
+                self.scoreR_text.text = f"Score: {self.scoreR}"
+                ballScore = ball
+                self.direction+=1
+                continue
+                
 
-        if self.ball.center_x > (WINDOW_WIDTH-25):
-            self.scoreL += 1
-            self.scoreL_text.text = f"Score: {self.scoreL}"
-        self.ball.update()
+            if ball.center_x > (WINDOW_WIDTH-25):
+                self.scoreL += 1
+                self.scoreL_text.text = f"Score: {self.scoreL}"
+                ballScore = ball
+                self.direction+=1
+                continue
+            
+            if ((ball.center_x - 25) < self.paddleL.center_x + 5) and (ball.center_y <= (self.paddleL.center_y + 50)) and (ball.center_y >= (self.paddleL.center_y - 50)):
+                ball.change_x *= -1
+                ball.change_x *= 1.1
+                ball.change_y *= 1.1
+            if ((ball.center_x + 25) > self.paddleR.center_x - 5) and (ball.center_y <= (self.paddleR.center_y + 50)) and (ball.center_y >= (self.paddleR.center_y - 50)):
+                ball.change_x *= -1
+                ball.change_x *= 1.1
+                ball.change_y *= 1.1
+            ball.update()
+
         self.paddleR.update()
         self.paddleL.update()
 
-        if ((self.ball.center_x - 25) < self.paddleL.center_x + 5) & (self.ball.center_y <= (self.paddleL.center_y + 50)) & (self.ball.center_y >= (self.paddleL.center_y - 50)):
-            self.ball.change_x *= -1
-        if ((self.ball.center_x + 25) > self.paddleR.center_x - 5) & (self.ball.center_y <= (self.paddleR.center_y + 50)) & (self.ball.center_y >= (self.paddleR.center_y - 50)):
-            self.ball.change_x *= -1
+        if ballScore:
+            self.balls.remove(ballScore)
+
+            self.balls.append(self.createBall(self.direction))
+
+        # if ((self.ball.center_x - 25) < self.paddleL.center_x + 5) & (self.ball.center_y <= (self.paddleL.center_y + 50)) & (self.ball.center_y >= (self.paddleL.center_y - 50)):
+        #     self.ball.change_x *= -1
+        # if ((self.ball.center_x + 25) > self.paddleR.center_x - 5) & (self.ball.center_y <= (self.paddleR.center_y + 50)) & (self.ball.center_y >= (self.paddleR.center_y - 50)):
+        #     self.ball.change_x *= -1
 
     def on_key_press(self, key, key_modifiers):
         """
@@ -158,9 +237,9 @@ def main():
     window = arcade.Window(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE)
 
     # Create and setup the GameView
-    game = GameView()
+    game = StartScreen()
 
-    game.setup()
+    #game.setup()
 
     # Show GameView on screen
     window.show_view(game)
