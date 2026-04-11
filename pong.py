@@ -24,7 +24,7 @@ class StartScreen(arcade.View):
                          arcade.color.WHITE, font_size=20, anchor_x="center")
         
     #handles the key presses of the intro screen and initializes the actual game
-    def on_key_press(self, key):
+    def on_key_press(self, key, key_modifiers):
 
         if key == arcade.key.KEY_1:
             balls = 1
@@ -141,7 +141,7 @@ class GameView(arcade.View):
             self.balls.append(self.createBall(self.direction))
 
     # Handles key presses from the user
-    def on_key_press(self, key):
+    def on_key_press(self, key, key_modifiers):
 
         if key == arcade.key.UP:
             self.paddleR.change_y = 10
@@ -154,7 +154,7 @@ class GameView(arcade.View):
             self.paddleL.change_y = -10
 
 # Makes sure that when the user stops pressing the keys that the movements stop
-    def on_key_release(self, key):
+    def on_key_release(self, key, key_modifiers):
 
         if key == arcade.key.UP:
             self.paddleR.change_y = 0
