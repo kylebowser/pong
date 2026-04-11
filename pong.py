@@ -1,30 +1,20 @@
-"""
-Starting Template
-
-Once you have learned how to use classes, you can begin your program with this
-template.
-
-If Python and Arcade are installed, this example can be run from the command line with:
-python -m arcade.examples.starting_template
-"""
 import arcade
 import ball
 import paddles
 
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
-WINDOW_TITLE = "Starting Template"
+WINDOW_TITLE = "Pong"
 
 class StartScreen(arcade.View):
+
+    #creates the intro screen
     def on_show_view(self):
     
         self.window.background_color = arcade.csscolor.DARK_SLATE_BLUE
 
-        # Reset the viewport, necessary if we have a scrolling game and we need
-        # to reset the viewport back to the start so we can see what we draw.
-        # self.window.default_camera.use()
+    #draws the inital view of the intro screen
     def on_draw(self):
-        """ Draw this view """
         self.clear()
         arcade.draw_text("Pong", self.window.width / 2, self.window.height / 2,
                          arcade.color.WHITE, font_size=50, anchor_x="center")
@@ -33,13 +23,9 @@ class StartScreen(arcade.View):
         arcade.draw_text("Press 2 for 2 balls", self.window.width / 2, self.window.height / 2-100,
                          arcade.color.WHITE, font_size=20, anchor_x="center")
         
-    def on_key_press(self, key, key_modifiers):
-        """
-        Called whenever a key on the keyboard is pressed.
+    #handles the key presses of the intro screen and initializes the actual game
+    def on_key_press(self, key):
 
-        For a full list of keys, see:
-        https://api.arcade.academy/en/latest/arcade.key.html
-        """
         if key == arcade.key.KEY_1:
             balls = 1
             game_view = GameView()
@@ -53,21 +39,12 @@ class StartScreen(arcade.View):
 
 
 class GameView(arcade.View):
-    """
-    Main application class.
 
-    NOTE: Go ahead and delete the methods you don't need.
-    If you do need a method, delete the 'pass' and replace it
-    with your own code. Don't leave 'pass' in this program.
-    """
-
+    #initalize the pong game params
     def __init__(self):
         super().__init__()
 
         self.background_color = arcade.color.AMAZON
-
-        # If you have sprite lists, you should create them here,
-        # and set them to None
 
         self.scoreL = 0
         self.scoreR = 0
@@ -79,6 +56,7 @@ class GameView(arcade.View):
         self.paddleR = paddles.Paddle()
         self.paddleL = paddles.Paddle()
 
+    # A helper method to create balls to be added to the game
     def createBall(self, y):
         z = 0
         if y % 2:
@@ -94,6 +72,7 @@ class GameView(arcade.View):
         
         return newBall
 
+    # sets up the game state 
     def setup(self, ballCount):
         self.scoreL = 0
         self.scoreR = 0
@@ -111,22 +90,10 @@ class GameView(arcade.View):
             self.balls.append(self.createBall(y))
             y += 1
 
-
-    def reset(self):
-        """Reset the game to the initial state."""
-        # Do changes needed to restart the game here if you want to support that
-        pass
-
+    # draws the inital game state
     def on_draw(self):
-        """
-        Render the screen.
-        """
-
-        # This command should happen before we start drawing. It will clear
-        # the screen to the background color, and erase what we drew last frame.
         self.clear()
 
-        # Call draw() on all your sprite lists below
         self.scoreL_text.draw()
         self.scoreR_text.draw()
         self.paddleL.draw()
@@ -134,12 +101,8 @@ class GameView(arcade.View):
         for ball in self.balls:
             ball.draw()
 
+    # Updates the game based on events that happen on screen and the users input
     def on_update(self, delta_time):
-        """
-        All the logic to move, and the game logic goes here.
-        Normally, you'll call update() on the sprite lists that
-        need it.
-        """
         ballScore = None
         
         for ball in self.balls:
@@ -166,6 +129,7 @@ class GameView(arcade.View):
                 ball.change_x *= -1
                 ball.change_x *= 1.1
                 ball.change_y *= 1.1
+
             ball.update()
 
         self.paddleR.update()
@@ -176,18 +140,9 @@ class GameView(arcade.View):
 
             self.balls.append(self.createBall(self.direction))
 
-        # if ((self.ball.center_x - 25) < self.paddleL.center_x + 5) & (self.ball.center_y <= (self.paddleL.center_y + 50)) & (self.ball.center_y >= (self.paddleL.center_y - 50)):
-        #     self.ball.change_x *= -1
-        # if ((self.ball.center_x + 25) > self.paddleR.center_x - 5) & (self.ball.center_y <= (self.paddleR.center_y + 50)) & (self.ball.center_y >= (self.paddleR.center_y - 50)):
-        #     self.ball.change_x *= -1
+    # Handles key presses from the user
+    def on_key_press(self, key):
 
-    def on_key_press(self, key, key_modifiers):
-        """
-        Called whenever a key on the keyboard is pressed.
-
-        For a full list of keys, see:
-        https://api.arcade.academy/en/latest/arcade.key.html
-        """
         if key == arcade.key.UP:
             self.paddleR.change_y = 10
         elif key == arcade.key.DOWN:
@@ -198,10 +153,9 @@ class GameView(arcade.View):
         elif key == arcade.key.S:
             self.paddleL.change_y = -10
 
-    def on_key_release(self, key, key_modifiers):
-        """
-        Called whenever the user lets off a previously pressed key.
-        """
+# Makes sure that when the user stops pressing the keys that the movements stop
+    def on_key_release(self, key):
+
         if key == arcade.key.UP:
             self.paddleR.change_y = 0
         elif key == arcade.key.DOWN:
@@ -212,39 +166,15 @@ class GameView(arcade.View):
         elif key == arcade.key.S:
             self.paddleL.change_y = 0
 
-    def on_mouse_motion(self, x, y, delta_x, delta_y):
-        """
-        Called whenever the mouse moves.
-        """
-        pass
-
-    def on_mouse_press(self, x, y, button, key_modifiers):
-        """
-        Called when the user presses a mouse button.
-        """
-        pass
-
-    def on_mouse_release(self, x, y, button, key_modifiers):
-        """
-        Called when a user releases a mouse button.
-        """
-        pass
-
-
+# Main functin
 def main():
-    """ Main function """
-    # Create a window class. This is what actually shows up on screen
+    
     window = arcade.Window(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE)
 
-    # Create and setup the GameView
     game = StartScreen()
 
-    #game.setup()
-
-    # Show GameView on screen
     window.show_view(game)
 
-    # Start the arcade game loop
     arcade.run()
 
 
